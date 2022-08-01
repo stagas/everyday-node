@@ -1,5 +1,5 @@
 <h1>
-everyday-node <a href="https://npmjs.org/package/everyday-node"><img src="https://img.shields.io/badge/npm-v0.0.1-F00.svg?colorA=000"/></a> <a href="src"><img src="https://img.shields.io/badge/loc-75-FFF.svg?colorA=000"/></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-F0B.svg?colorA=000"/></a>
+everyday-node <a href="https://npmjs.org/package/everyday-node"><img src="https://img.shields.io/badge/npm-v1.0.0-F00.svg?colorA=000"/></a> <a href="src"><img src="https://img.shields.io/badge/loc-75-FFF.svg?colorA=000"/></a> <a href="https://cdn.jsdelivr.net/npm/everyday-node@1.0.0/dist/everyday-node.min.js"><img src="https://img.shields.io/badge/brotli-1.1K-333.svg?colorA=000"/></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-F0B.svg?colorA=000"/></a>
 </h1>
 
 <p></p>
