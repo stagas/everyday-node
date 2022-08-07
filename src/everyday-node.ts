@@ -2,7 +2,12 @@ import * as child_process from 'child_process'
 import * as fs from 'fs'
 import * as fsp from 'fs/promises'
 
-export { exec as execCapture, execSync as execCaptureSync } from 'get-pty-output'
+import type { exec as execType, execSync as execSyncType } from 'get-pty-output'
+
+export const execCapture: typeof execType = async (cmd, options) => (await import('get-pty-output')).exec(cmd, options)
+
+export const execCaptureSync: typeof execSyncType = (cmd, options) =>
+  (require('get-pty-output').execSync as typeof execSyncType)(cmd, options)
 
 export const exists = async (pathname: string) => {
   try {
