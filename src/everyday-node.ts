@@ -9,7 +9,7 @@ export const execCapture: typeof execType = async (cmd, options) => (await impor
 export const execCaptureSync: typeof execSyncType = (cmd, options) =>
   (require('get-pty-output').execSync as typeof execSyncType)(cmd, options)
 
-export const exists = async (pathname: string) => {
+export async function exists(pathname: string) {
   try {
     await fsp.lstat(pathname)
     return true
@@ -18,8 +18,18 @@ export const exists = async (pathname: string) => {
   }
 }
 
+export async function discoverFileWithSuffixes(pathname: string, suffixes: string[]) {
+  let file: string | void = pathname
+  const candidates = suffixes.map(x => file + x)
+  while (!(await exists(file))) {
+    file = candidates.shift()
+    if (!file) return
+  }
+  return file
+}
+
 // https://stackoverflow.com/a/60203932
-export const keypressSync = (msg: string) => {
+export function keypressSync(msg: string) {
   process.stdout.write(msg)
 
   const fd = fs.openSync('/dev/tty', 'rs')
@@ -45,7 +55,7 @@ export const keypressSync = (msg: string) => {
 
 import type { Key } from 'readline'
 
-export const keypress = async (msg: string, cb: (char: string, key: Key) => void) => {
+export async function keypress(msg: string, cb: (char: string, key: Key) => void) {
   const { emitKeypressEvents } = await import('readline')
   emitKeypressEvents(process.stdin)
   process.stdin.setRawMode(true)
@@ -59,7 +69,7 @@ export const keypress = async (msg: string, cb: (char: string, key: Key) => void
   }
 }
 
-export const singleKeypress = async (msg: string) => {
+export async function singleKeypress(msg: string) {
   const { emitKeypressEvents } = await import('readline')
   emitKeypressEvents(process.stdin)
   process.stdin.setRawMode(true)
@@ -76,8 +86,8 @@ export const singleKeypress = async (msg: string) => {
   })
 }
 
-export const exec = (cmd: string, args: string[] = [], options: child_process.SpawnOptions = {}) =>
-  new Promise((resolve, reject) => {
+export function exec(cmd: string, args: string[] = [], options: child_process.SpawnOptions = {}) {
+  return new Promise((resolve, reject) => {
     const child = child_process.spawn(
       cmd,
       args,
@@ -95,3 +105,4 @@ export const exec = (cmd: string, args: string[] = [], options: child_process.Sp
     child.once('error', reject)
     child.once('exit', resolve)
   })
+}
