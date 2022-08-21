@@ -21,7 +21,7 @@ export async function exists(pathname: string) {
 export async function discoverFileWithSuffixes(pathname: string, suffixes: string[]) {
   let file: string | void = pathname
   const candidates = suffixes.map(x => file + x)
-  while (!(await exists(file))) {
+  while (!(await exists(file)) || !(await fs.promises.stat(file)).isFile()) {
     file = candidates.shift()
     if (!file) return
   }
