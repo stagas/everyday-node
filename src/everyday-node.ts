@@ -1,8 +1,14 @@
 import * as child_process from 'child_process'
+import { Deferred } from 'everyday-utils'
 import * as fs from 'fs'
 import * as fsp from 'fs/promises'
-
 import type { exec as execType, execSync as execSyncType } from 'get-pty-output'
+import type { Key } from 'readline'
+
+export interface CharKey {
+  char: string
+  key: Key
+}
 
 export const execCapture: typeof execType = async (cmd, options) => (await import('get-pty-output')).exec(cmd, options)
 
@@ -53,8 +59,6 @@ export function keypressSync(msg: string) {
   return result
 }
 
-import type { Key } from 'readline'
-
 export async function keypress(msg: string, cb: (char: string, key: Key) => void) {
   const { emitKeypressEvents } = await import('readline')
   emitKeypressEvents(process.stdin)
@@ -71,19 +75,32 @@ export async function keypress(msg: string, cb: (char: string, key: Key) => void
 
 export async function singleKeypress(msg: string) {
   const { emitKeypressEvents } = await import('readline')
+
   emitKeypressEvents(process.stdin)
+
   process.stdin.setRawMode(true)
   process.stdin.resume()
-
   process.stdout.write(msg)
 
-  return new Promise<{ char: string; key: Key }>(resolve => {
-    process.stdin.once('keypress', (char: string, key: Key) => {
-      process.stdin.setRawMode(false)
-      process.stdin.pause()
-      resolve({ char, key })
-    })
+  const pause = () => {
+    process.stdin.setRawMode(false)
+    process.stdin.pause()
+  }
+
+  const deferred = Deferred<CharKey>()
+
+  const onKeypress = (char: string, key: Key) => {
+    deferred.resolve({ char, key })
+  }
+
+  process.stdin.once('keypress', onKeypress)
+
+  deferred.when(() => {
+    pause()
+    process.stdin.off('keypress', onKeypress)
   })
+
+  return deferred
 }
 
 export function exec(cmd: string, args: string[] = [], options: child_process.SpawnOptions = {}) {
