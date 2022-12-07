@@ -3,6 +3,7 @@ import { Deferred } from 'everyday-utils'
 import * as fs from 'fs'
 import * as fsp from 'fs/promises'
 import type { exec as execType, execSync as execSyncType } from 'get-pty-output'
+import * as path from 'path'
 import type { Key } from 'readline'
 
 export interface CharKey {
@@ -122,4 +123,30 @@ export function exec(cmd: string, args: string[] = [], options: child_process.Sp
     child.once('error', reject)
     child.once('exit', resolve)
   })
+}
+
+export async function waitForFileExists(pathname: string, timeout = 15000) {
+  const dirname = path.dirname(pathname)
+  const basename = path.basename(pathname)
+
+  if (await exists(pathname)) return
+
+  const deferred = Deferred<void>()
+
+  deferred.when(() => {
+    clearTimeout(timer)
+    watcher.close()
+  })
+
+  const watcher = fs.watch(dirname, (_, filename) => {
+    if (filename === basename) {
+      deferred.resolve()
+    }
+  })
+
+  const timer = setTimeout(() => {
+    deferred.reject(new Error('File does not exist, timed out waiting.'))
+  }, timeout)
+
+  return deferred
 }
